@@ -49,10 +49,10 @@ a copy of the script and produces a pandas dataframe containing any data produce
 sweeps . close sweep_config.json
 ```
 
-The follwing data formats have support added for `sweeps.get_data()`:
+The following data have support for `sweeps . close`.
 * HDF5 (.hdf5)
 * Matlab (.mat)
-* JSON (.json) *Note: Ensure that saved data file is not naed params.json*
+* JSON (.json) *Note: Ensure that saved data file is not named params.json*
 * Binary JSON (.bson)
 * Numpy array (.npz)
 * Python Pickele file (.pklz or .pkl)
