@@ -1,65 +1,34 @@
-'''
-sweeps package analysis tools for generated data
-Uses `pandas` library for DataFrames
-
-Created: November 2019
-'''
-
+import os, os.path as path, shutil
 import pandas as pd
-import numpy as np
-import os
-import json
-import warnings
+import hashlib, json
 
-def remove_non_rfs(sim_loc,directory_list):
-    """Remove files not corresponding to rfs directories from a directory list.
+from .setup_sweep import read_sweep
 
-    Keyword arguments:
-    sim_loc -- location of where sweeps was run and ./rfs/ folder is located
-    directory_list -- the list variable of all pathis in the rfs directory
-    """
-    for rf in directory_list:
-        if not(os.path.isdir(os.path.join(sim_loc,'rfs',rf))):
-            # rf is not a directory -> remove it:
-            directory_list.remove(rf)
+def close_rfs(project_dir, sweep_file):
+    sweep_filepath = path.join(project_dir,sweep_file)
+    rfs = [rf for rf,_ in read_sweep(sweep_filepath)]
 
-            # Print a message if this file isn't hidden:
-            if rf[0] != '.':    # Check if file is a hidden system file
-                print('!! File', rf, 'in rfs directory is not a run folder. '
-                    'It has been removed from directory_list.')
+    params = []
+    results = []
+    for rf in rfs:
+        rf_path = path.join(project_dir,'rfs',rf)
+        if path.exists(rf_path):
+            with open(os.path.join(rf_path,'params.json')) as prm_fl:
+                params.append(json.load(prm_fl))
+    df = pd.DataFrame(params,index=rfs)
 
-def get_DataFrame(
-        sim_loc: str, ID_hashes=None,
-        col_headers=None) -> pd.core.frame.DataFrame:
-    """Extract and return a pandas DataFrame from a directory of run folders.
+    with open(sweep_filepath) as file:
+        sweep = json.load(file)
+    params = json.dumps(sweep,indent=4,sort_keys=True)
+    params_id = hashlib.md5(params.encode('utf-8')).hexdigest()[:16]
+    data_path = path.join(project_dir,'data',params_id)
+    if not path.exists(data_path):
+        os.mkdir(data_path)
 
-    Keyword arguments:
-    sim_loc -- location of where sweeps was run and ./rfs/ folder is located
-    ID_hashes -- a list of particular run IDs wanted to construct a data frame
-    col_headers -- a list of custom column headers for the DataFrame
-    """
-    IDs = os.listdir(os.path.join(sim_loc,'rfs'))
 
-    # Remove non-directories from IDs:
-    remove_non_rfs(sim_loc,IDs)
 
-    # If requested, use custom list of IDs:
-    if ID_hashes != None:
-        assert ID_hashes.issubset(IDs), ("Invalid ID_hashes list; Some "
-        "requested run IDs in ID_hashes are not in the list of found IDS.")
-        for rf in IDs:
-            if rf not in ID_hashes:
-                IDs.remove(rf)
-
-    num_IDs = len(IDs)
-    params = [dict() for x in range(num_IDs)]
-    for i in range(num_IDs):
-        with open(os.path.join(sim_loc,'rfs',IDs[i],'params.json')) as prm_fl:
-            params[i] = json.load(prm_fl)   # Get JSON dict from parameter file
-
-    df = pd.DataFrame(params, index=IDs) if col_headers == None \
-        else pd.DataFrame(params, index=IDs, columns=col_headers)
-    return df
+    df.to_pickle(path.join(data_path,'result.pkl'))
+    shutil.copyfile(sweep_filepath,path.join(data_path,sweep_file))
 
 
 def get_data(ID:str, sim_loc: str):

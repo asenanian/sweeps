@@ -2,37 +2,36 @@ import argparse
 import os, os.path as path, shutil
 import signal
 import subprocess, multiprocessing
-import sys
 
 from .sweep_utils import get_timestamp, asheader, write, get_script_id
 from .sweep_utils import Status, collect_rf_status, generate_status
 from .setup_sweep import read_sweep
 
-def run_sweep(
-        project, prog, script, num_procs, sweep=None, rerun_failed=False,
-        skip_approval=False):
+def run_sweep(project_dir, prog, script_file, num_procs, sweep_file=None, rerun_failed=False):
     timestamp = get_timestamp()
     # Determine status of all requested rfs
-    rf_status = collect_rf_status(script, project)
+    rf_status = collect_rf_status(script_file, project_dir)
 
-    if sweep is not None:
-        sweep_file = path.join(project,sweep)
-        rfs = [rf for rf,_ in read_sweep(sweep_file)]
+    if sweep_file is not None:
+        sweep_filepath = path.join(project_dir,sweep_file)
+        rfs = [rf for rf,_ in read_sweep(sweep_filepath)]
         for status in Status:
             rf_status[status].intersection_update(rfs)
-            
+
     queued_rfs = set(rf_status[Status.NEW])
     if rerun_failed:
         queued_rfs.update(rf_status[Status.FAILED])
+
     # Write summary of rfs status to file
     run = timestamp+'.run'
-    run_file = path.join(project,run)
-    script_id = get_script_id(script,project)
+    run_file = path.join(project_dir,run)
+    script_id = get_script_id(script_file,project_dir)
+
     with open(run_file, 'a') as file:
         write(file, "# RUN FILE FOR SWEEP GENERATED AT " + timestamp)
         write(file, "# script: " + script_id)
         write(file, "# rerun_failed: " + str(rerun_failed))
-        write(file, "# rfs: " + (sweep if sweep else "All"))
+        write(file, "# rfs: " + (sweep_file if sweep_file else "All"))
         write(file, asheader("REQUESTED RFs QUEUED TO RUN", "# "))
         for rf in sorted(queued_rfs):
             write(file, rf)
@@ -50,14 +49,6 @@ def run_sweep(
     if rf_status[Status.RUNNING] or rf_status[Status.QUEUED]:
         print("Warning: Found rfs with status QUEUED or RUNNING (ignored)")
 
-    if not skip_approval:
-        if not query_yes_no("Run file written to " + run + " " +
-            "("+str(len(queued_rfs)) + " rfs queued to run).\nProceed (y/N)?"):
-            return print("Aborting sweep.")
-    else:
-        print("Run file written to " + run + " " +
-            "("+str(len(queued_rfs)) + " rfs queued to run).")
-
     # Define signal handlers
     def handle_signal(rc, *args):
         if rc == signal.SIGINT:
@@ -68,7 +59,7 @@ def run_sweep(
         pool.terminate()
         pool.join()
         for rf in queued_rfs:
-            with open(path.join(project,'rfs',rf,'status.txt'), 'a') as status:
+            with open(path.join(project_dir,'rfs',rf,'status.txt'), 'a') as status:
                 write(status, generate_status("  KILLED",script_id))
         raise SystemExit(rc)
 
@@ -77,19 +68,19 @@ def run_sweep(
     signal.signal(signal.SIGINT, handle_signal)
 
     # Copy to history
-    os.rename(run_file, path.join(project,'history',run))
-    if sweep is not None:
-        os.rename(sweep_file, path.join(project,'history',sweep))
-    shutil.copyfile(path.join(project,'bin',script),\
-        path.join(project,'history',timestamp+'.script'))
+    os.rename(run_file, path.join(project_dir,'history',run))
+    if sweep_file is not None:
+        os.rename(sweep_filepath, path.join(project_dir,'history',sweep_file))
+    shutil.copyfile(path.join(project_dir,'bin',script_file),\
+        path.join(project_dir,'history',timestamp+'.script'))
 
     for rf in queued_rfs:
-        with open(path.join(project,'rfs',rf,'status.txt'), 'a') as status:
+        with open(path.join(project_dir,'rfs',rf,'status.txt'), 'a') as status:
             write(status, generate_status("  QUEUED",script_id))
 
     # Start the sweep
     pool = multiprocessing.Pool(processes=num_procs)
-    args = [(project, prog, script, rf) for rf in queued_rfs]
+    args = [(project_dir, prog, script_file, rf) for rf in queued_rfs]
     pool.imap_unordered(run_rf, args, chunksize=1)
     pool.close()
 
@@ -99,19 +90,22 @@ def run_sweep(
     print("Sweep completed.")
 
 def run_rf(args):
-    project, prog, script, rf = args
-    rf_path = path.join(project, 'rfs', rf)
-    script_path = path.join(project, 'bin', script)
-    script_id = get_script_id(script, project)
+    project_dir, prog, script_file, rf = args
+    rf_path = path.join(project_dir, 'rfs', rf)
+    script_path = path.join(project_dir, 'bin', script_file)
+    script_id = get_script_id(script_file, project_dir)
+
     # Open log and status files
     log = open(path.join(rf_path,'log.txt'), 'a')
     status = open(path.join(rf_path,'status.txt'), 'a')
     write(log, asheader("LOG FILE OPENED "+get_timestamp()))
+
     # Define signal handlers
     def handle_signal(rc, *args):
         write(log, "SIGNAL "+str(rc)+" RECEIVED: TERMINATING SCRIPT")
         process.terminate()
         raise SystemExit(rc)
+
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, handle_signal)
     # Run the script
@@ -132,35 +126,3 @@ def run_rf(args):
         write(log, asheader("LOG FILE CLOSED "+get_timestamp()))
         log.close()
         status.close()
-
-def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
-    """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        sys.stdout.write(question + prompt)
-        choice = input().lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")

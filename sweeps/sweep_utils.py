@@ -25,11 +25,11 @@ def write(file, message):
     file.write(message+'\n')
     file.flush()
 
-def get_script_id(script, sim):
-    script_path = path.join(sim, "bin", script)
+def get_script_id(script_file, project_dir):
+    script_path = path.join(project_dir, "bin", script_file)
     with open(script_path) as file:
         contents = file.read()
-        return script + "@" + hashlib.md5(contents.encode('utf-8')).hexdigest()
+        return script_file + "@" + hashlib.md5(contents.encode('utf-8')).hexdigest()
 
 class Status(enum.Enum):
     RUNNING = 3
@@ -42,12 +42,12 @@ class Status(enum.Enum):
 def generate_status(action, script_id):
     return " | ".join((action, get_timestamp(), script_id))
 
-def check_status(rf, script, sim):
-    with open(path.join(sim,'rfs',rf,'status.txt'), 'r') as file:
+def check_status(rf, script, project_dir):
+    with open(path.join(project_dir,'rfs',rf,'status.txt'), 'r') as file:
         status = Status.NEW
         for line in file:
             action, _, script_id = (s.strip() for s in line.split('|'))
-            if script_id != get_script_id(script,sim):
+            if script_id != get_script_id(script,project_dir):
                 continue
             if status is Status.NEW:
                 if action == "QUEUED":
@@ -77,20 +77,20 @@ def check_status(rf, script, sim):
                     status = Status.INVALID
     return status
 
-def collect_rf_status(script, sim):
+def collect_rf_status(script, project_dir):
     status_table = {e : set() for e in Status}
-    for rf in os.listdir(path.join(sim,'rfs')):
-        if os.path.isdir(path.join(sim,'rfs',rf)):   # Check that path is a directory
-            status = check_status(rf, script, sim)
+    for rf in os.listdir(path.join(project_dir,'rfs')):
+        if os.path.isdir(path.join(project_dir,'rfs',rf)):   # Check that path is a directory
+            status = check_status(rf, script, project_dir)
             status_table[status].add(rf)
         else:
             if rf[0] != '.':    # Check if file is a hidden system file
-                print('!! File', rf, 'in rfs directory is not a run folder. ' 
+                print('!! File', rf, 'in rfs directory is not a run folder. '
                     'It has been skipped.')
     return status_table
 
-def query_status(script, sim):
-    print("SWEEP SUMMARY: " + get_script_id(script, sim))
-    for status,rfs in collect_rf_status(script,sim).items():
+def query_status(script, project_dir):
+    print("SWEEP SUMMARY: " + get_script_id(script, project_dir))
+    for status,rfs in collect_rf_status(script,project_dir).items():
         print(str(status.name).rjust(13) + ": "
             + (str(len(rfs)) if len(rfs)>0 else "----").rjust(4))
