@@ -25,8 +25,6 @@ def close_rfs(project_dir, sweep_file):
     if not path.exists(data_path):
         os.mkdir(data_path)
 
-
-
     df.to_pickle(path.join(data_path,'result.pkl'))
     shutil.copyfile(sweep_filepath,path.join(data_path,sweep_file))
 

@@ -8,6 +8,9 @@ __pycache__
 /build/*
 /dist/*
 /sweeps.egg-info/*
+/test/rfs/*
+/test/history/*
+/test/data/*
 
 # macOS .DS_Store file
 **/.DS_Store

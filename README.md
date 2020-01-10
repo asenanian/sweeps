@@ -88,5 +88,10 @@ The following data have support for `sweeps . close`.
 │       ├── log.txt
 │       ├── params.json
 │       └── status.txt
+├── data
+│   ├── eeab1386ca484886
+│       ├── result.pkl
+│       ├── sweep_config_copy.json
+│       ├── script_file_copy.jl
 └── sweep_config.json
 ```
