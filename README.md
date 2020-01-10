@@ -17,8 +17,7 @@ This guide assumes you are working in the top-level of your parameter sweeps dir
 2. Add a JSON file to the top-level containing parameter sweep information.
 ⋅⋅* An example parameter sweep file, such as `sweep_config.json`, may be seen [in the test folder](https://github.com/brian-i/sweeps/blob/master/test/sweep.json).
 3. Add a script file to the `bin` folder.
-4. Create run folders (rfs) using `sweeps create` (below)
-5. Run the script using `sweeps run` (below)
+4. Run the script using `sweeps run` (below)
 
 ### To create rfs:
 Run folders (rfs) represent individual runs of a script file for a particular parameter. The folder name is a hash depending on the parameter value and script file.
