@@ -66,6 +66,7 @@ def read_sweep(sweep_file):
                                                     else None
     dtype_handlers['linspace'] = lambda value : numpy.linspace(*value).tolist() \
                                             if len(value) == 3 else None
+    dtype_handlers['string'] = lambda value : [value]
 
     parameter_keys = list(sweep.keys())
     parameter_values = [dtype_handlers[item['sweep_type']](item['value'])  \
