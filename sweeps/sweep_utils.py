@@ -30,7 +30,6 @@ def get_script_id(script_file, project_dir):
         contents = file.read()
         return script_file + "@" + hashlib.md5(contents.encode('utf-8')).hexdigest()
 
-
 def get_param_id(project_dir,sweep_file):
     sweep_filepath = os.path.join(project_dir,sweep_file)
     with open(sweep_filepath) as file:
@@ -102,6 +101,6 @@ def collect_rf_status(project_dir,rfs=None,script=None):
 
 def query_status(script, project_dir):
     print("SWEEP SUMMARY: " + get_script_id(script, project_dir))
-    for status,rfs in collect_rf_status(script,project_dir).items():
+    for status,rfs in collect_rf_status(project_dir,script=script).items():
         print(str(status.name).rjust(13) + ": "
             + (str(len(rfs)) if len(rfs)>0 else "----").rjust(4))

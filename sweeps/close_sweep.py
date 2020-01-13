@@ -46,10 +46,7 @@ def close_rfs(project_dir, sweep_file):
     df['results'] = pd.Series(results,index=df.index)
 
     # designate directory for combined run results and information
-    with open(sweep_filepath) as file:
-        sweep = json.load(file)
-    params = json.dumps(sweep,indent=4,sort_keys=True)
-    params_id = hashlib.md5(params.encode('utf-8')).hexdigest()[:16]
+    params_id = get_param_id(project_dir,sweep_file)
     data_path = path.join(project_dir,'data',params_id)
     if not path.exists(data_path):
         os.mkdir(data_path)
