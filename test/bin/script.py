@@ -13,7 +13,13 @@ a = params['a']
 b = params['b']
 c = params['c']
 
-print("WHAT's UP BREH")
+if a == 2: x = np.ones(3) # will throw exception. numpy not imported
+elif a == 1: x = 4
+else: x = 0
 
 with gzip.open(path.join(rf,'result.pklz'),'wb') as f:
-    pickle.dump(params,f,-1)
+    pickle.dump(x,f,-1)
+
+if c == 20: 
+    with gzip.open(path.join(rf,'result2.pklz'),'wb') as f:
+        pickle.dump(c,f,-1)

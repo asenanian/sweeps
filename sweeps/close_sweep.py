@@ -1,22 +1,51 @@
 import os, os.path as path, shutil
 import pandas as pd
+import numpy as np
+import math
 import hashlib, json
+import warnings
 
+from .sweep_utils import Status, collect_rf_status, generate_status, write
 from .setup_sweep import read_sweep
 
+
 def close_rfs(project_dir, sweep_file):
+    rfs = [rf for rf,_ in read_sweep(sweep_file)]
+    rf_status = collect_rf_status(project_dir,rfs=rfs)
+
+    if rf_status[Status.FAILED]:
+        warnings.warn("Warning: Found rfs with status FAILED.")
+
     sweep_filepath = path.join(project_dir,sweep_file)
-    rfs = [rf for rf,_ in read_sweep(sweep_filepath)]
+    finished_rfs = set(rf_status[Status.FINISHED])
 
     params = []
     results = []
-    for rf in rfs:
+    script_ids = []
+    for rf in finished_rfs:
         rf_path = path.join(project_dir,'rfs',rf)
         if path.exists(rf_path):
-            with open(os.path.join(rf_path,'params.json')) as prm_fl:
-                params.append(json.load(prm_fl))
-    df = pd.DataFrame(params,index=rfs)
+            with open(os.path.join(rf_path,'params.json')) as param_file:
+                params.append(json.load(param_file))
+            tup = tuple([x for x in get_data(rf,project_dir)])
+            if len(tup) == 1: 
+                results.append(tup[0])
+            elif len(tup) == 0: 
+                warnings.warn("Data file was not produced by finished run: " + str(rf))
+            else: 
+                results.append(tup)
+            with open(path.join(project_dir,'rfs',rf,'status.txt'), 'r') as file:
+                for line in file:
+                    _, _, script_id = (s.strip() for s in line.split('|'))
+                script_ids.append(script_id)
+    
+    if np.unique(script_ids).size > 1: 
+        raise ValueError("Reading data produced by a multiple scripts.")
 
+    df = pd.DataFrame(params,index=finished_rfs)
+    df['results'] = pd.Series(results,index=df.index)
+
+    # designate directory for combined run results and information
     with open(sweep_filepath) as file:
         sweep = json.load(file)
     params = json.dumps(sweep,indent=4,sort_keys=True)
@@ -25,9 +54,23 @@ def close_rfs(project_dir, sweep_file):
     if not path.exists(data_path):
         os.mkdir(data_path)
 
+    # collect status file outputs and save to a master log file
+    with open(path.join(data_path,'status.txt'),'w+') as status_file:
+        for rf in rfs:
+            with open(path.join(project_dir,'rfs',rf,'status.txt'),'r') as infile:
+                for line in infile: pass
+            write(status_file,"Status for RF " + str(rf) +": " + str(line))
+    
+    # collect log file outputs and save to a master log file
+    with open(path.join(data_path,'log.txt'),'w+') as log_file:
+        for rf in rfs:
+            with open(path.join(project_dir,'rfs',rf,'log.txt'),'r') as infile:
+                write(log_file,"LOG FILE FOR RF: " + str(rf))
+                for line in infile: 
+                    log_file.write(line)
+
     df.to_pickle(path.join(data_path,'result.pkl'))
     shutil.copyfile(sweep_filepath,path.join(data_path,sweep_file))
-
 
 def get_data(ID:str, sim_loc: str):
     """
@@ -40,6 +83,7 @@ def get_data(ID:str, sim_loc: str):
     directory_list = os.listdir(os.path.join(sim_loc,'rfs',ID))
     directory_list = [e for e in directory_list if e not in (
         'log.txt', 'params.json', 'status.txt')]
+
     for filename in directory_list:
         if filename[0] == '.':
             # Hidden file - exclude from search
@@ -88,9 +132,3 @@ def get_data(ID:str, sim_loc: str):
                     # to row major used by numpy, so to read matrices this way
                     # they are transposed.
                 )
-    if directory_list:  # (if directory_list is not empty)
-        warnings.warn("No recognized data type recognized; returning a file:")
-        with open(os.path.join(sim_loc,'rfs',ID,directory_list[0])) as file:
-            yield file
-    else:
-        raise IOError('No data files found for given run folder.')

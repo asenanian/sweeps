@@ -10,7 +10,7 @@ from .setup_sweep import read_sweep
 def run_sweep(project_dir, prog, script_file, num_procs, sweep_file=None, rerun_failed=False):
     timestamp = get_timestamp()
     # Determine status of all requested rfs
-    rf_status = collect_rf_status(script_file, project_dir)
+    rf_status = collect_rf_status(project_dir,script=script_file)
 
     if sweep_file is not None:
         sweep_filepath = path.join(project_dir,sweep_file)

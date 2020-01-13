@@ -5,9 +5,8 @@ import enum
 import hashlib
 import json
 
-def read_params(params=None):
+def read_params(rf,params=None):
     if params is None:
-        rf = sys.argv[1]
         with open(path.join(rf,'params.json')) as param_file:
             params = json.load(param_file)
     return argparse.Namespace(**params)
@@ -42,13 +41,14 @@ class Status(enum.Enum):
 def generate_status(action, script_id):
     return " | ".join((action, get_timestamp(), script_id))
 
-def check_status(rf, script, project_dir):
+def check_status(rf, project_dir,script=None):
     with open(path.join(project_dir,'rfs',rf,'status.txt'), 'r') as file:
         status = Status.NEW
         for line in file:
             action, _, script_id = (s.strip() for s in line.split('|'))
-            if script_id != get_script_id(script,project_dir):
-                continue
+            if script is not None: 
+                if script_id != get_script_id(script,project_dir):
+                    continue
             if status is Status.NEW:
                 if action == "QUEUED":
                     status = Status.QUEUED
@@ -77,11 +77,13 @@ def check_status(rf, script, project_dir):
                     status = Status.INVALID
     return status
 
-def collect_rf_status(script, project_dir):
+def collect_rf_status(project_dir,rfs=None,script=None):
     status_table = {e : set() for e in Status}
-    for rf in os.listdir(path.join(project_dir,'rfs')):
+    if rfs == None: 
+        rfs = os.listdir(path.join(project_dir,'rfs'))
+    for rf in rfs:
         if os.path.isdir(path.join(project_dir,'rfs',rf)):   # Check that path is a directory
-            status = check_status(rf, script, project_dir)
+            status = check_status(rf, project_dir, script)
             status_table[status].add(rf)
         else:
             if rf[0] != '.':    # Check if file is a hidden system file
