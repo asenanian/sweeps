@@ -30,6 +30,15 @@ def get_script_id(script_file, project_dir):
         contents = file.read()
         return script_file + "@" + hashlib.md5(contents.encode('utf-8')).hexdigest()
 
+
+def get_param_id(project_dir,sweep_file):
+    sweep_filepath = os.path.join(project_dir,sweep_file)
+    with open(sweep_filepath) as file:
+        sweep = json.load(file)
+    params = json.dumps(sweep,indent=4,sort_keys=True)
+    params_id = hashlib.md5(params.encode('utf-8')).hexdigest()[:16]
+    return params_id
+
 class Status(enum.Enum):
     RUNNING = 3
     QUEUED = 2
