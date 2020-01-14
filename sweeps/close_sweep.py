@@ -69,6 +69,11 @@ def close_rfs(project_dir, sweep_file):
     df.to_pickle(path.join(data_path,'result.pkl'))
     shutil.copyfile(sweep_filepath,path.join(data_path,sweep_file))
 
+def get_dataframe(project_dir):
+    directory_list = os.listdir(os.path.join(project_dir,'data'))
+    for param_folder in directory_list:
+        yield pd.read_pickle(os.path.join(project_dir,'data',param_folder,'result.pkl'))
+
 def get_data(ID:str, sim_loc: str):
     """
     Return data extracted from a saved file in a particular run folder.
