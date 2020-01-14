@@ -51,7 +51,7 @@ def main():
         run_sweep(args.project_dir, args.program, args.script_file, args.procs,\
             args.sweep_file, args.rerun_failed)
     elif args.subcommand == 'query':
-        query_status(args.script_file, args.project_dir)
+        query_status(args.project_dir, args.script_file)
     elif args.subcommand == 'close':
         close_rfs(args.project_dir, args.sweep_file)
 

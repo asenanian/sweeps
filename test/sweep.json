@@ -2,7 +2,7 @@
     "a":
     {
         "sweep_type": "manual",
-        "value": [1,2]
+        "value": [1,2,4,6,7]
     },
     "b":
     {

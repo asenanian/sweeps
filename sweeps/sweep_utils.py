@@ -86,9 +86,9 @@ def check_status(rf, project_dir,script=None):
     return status
 
 def collect_rf_status(project_dir,rfs=None,script=None):
+    if rfs == None: rfs = os.listdir(path.join(project_dir,'rfs'))
+
     status_table = {e : set() for e in Status}
-    if rfs == None: 
-        rfs = os.listdir(path.join(project_dir,'rfs'))
     for rf in rfs:
         if os.path.isdir(path.join(project_dir,'rfs',rf)):   # Check that path is a directory
             status = check_status(rf, project_dir, script)
@@ -99,8 +99,8 @@ def collect_rf_status(project_dir,rfs=None,script=None):
                     'It has been skipped.')
     return status_table
 
-def query_status(script, project_dir):
-    print("SWEEP SUMMARY: " + get_script_id(script, project_dir))
-    for status,rfs in collect_rf_status(project_dir,script=script).items():
+def query_status(project_dir, script_file):
+    print("SWEEP SUMMARY: " + get_script_id(script_file, project_dir))
+    for status,rfs in collect_rf_status(project_dir,script=script_file).items():
         print(str(status.name).rjust(13) + ": "
             + (str(len(rfs)) if len(rfs)>0 else "----").rjust(4))
