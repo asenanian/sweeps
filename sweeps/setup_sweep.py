@@ -41,14 +41,6 @@ def create_rfs(project_dir, sweep_file):
 def delete_rfs(project_dir, sweep_file):
     sweep_filepath = path.join(project_dir,sweep_file)
 
-    with open(sweep_filepath) as file:
-        sweep = json.load(file)
-    params = json.dumps(sweep,indent=4,sort_keys=True)
-    params_id = hashlib.md5(params.encode('utf-8')).hexdigest()[:16]
-    data_path = path.join(project_dir,'data',params_id)
-    if path.exists(data_path):
-        shutil.rmtree(data_path)
-
     for rf,_ in read_sweep(sweep_filepath): #TODO: Check equality of params.json?
         rf_path = path.join(project_dir,'rfs',rf)
         if path.exists(rf_path):
