@@ -58,14 +58,16 @@ The following data have support for `sweeps . close`.
 * Python Pickele file (.pklz or .pkl)
 * Julia, using HDF5 encoding (.jld or .jld2) (returns Numpy array if it is the only object stored in file, otherwise returns HDF5 keys)
 
-Closing the sweep will find all data files from the above list produced by all completed runs of your script, and aggregate them within the dataframe. Here is a possible example of a dataframe produced by a script which, depending on the input parameters, produces one or two datafiles:
+Closing the sweep will find all data files from the above list produced by all completed runs of your script, and aggregate them within the dataframe. 
 
+Here is a possible example of a dataframe produced by a script which, depending on the input parameters, produces one or two datafiles whos results are aggregated in a tuple:
 ```python
 >>> import os
 >>> import sweeps as sw
 >>> cwd = os.getcwd()
 >>> dataframes = sw.get_dataframe(cwd) # generator of dataframes for finished runs
 >>> df = next(dataframes)
+>>> df
                   a    b      c    results
 e9b0f2081a509199  1  0.5    0.0          4
 e9b0f2858a7b70b1  1  0.5   20.0  (4, 20.0)
@@ -76,6 +78,7 @@ f0a0ae3eaf59f41c  4  0.5    0.0          0
 c920026405b40f2d  4  0.5   40.0          0
 a503c32641b59f8b  4  0.5   60.0          0
 ```
+
 
 # Example Directory Structure Tree
 ```
