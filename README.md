@@ -6,7 +6,7 @@ Run parameter sweeps easily, in parallel, with JSON parameters, logs, diverse la
 
 To install: Download sweeps package, navigate to its directory (`cd sweeps`) and execute the following:
 ```bash
-sudo python setup.py install
+python setup.py install --user
 ```
 
 After installation, `sweeps` may now be invoked from the command line anywhere on your system.
@@ -114,7 +114,7 @@ a503c32641b59f8b  4  0.5   60.0          0
 │   └── d73ece6dc1a2f5e8
 │       ├── log.txt
 │       ├── params.json
-│   │   ├── result1.pklz
+│       ├── result1.pklz
 │       └── status.txt
 ├── data
 │   ├── eeab1386ca484886
