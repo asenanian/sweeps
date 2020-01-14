@@ -55,7 +55,7 @@ The following data have support for `sweeps . close`.
 * JSON (.json) *Note: Ensure that saved data file is not named params.json*
 * Binary JSON (.bson)
 * Numpy array (.npz)
-* Python Pickele file (.pklz or .pkl)
+* Python Pickel file (.pklz or .pkl)
 * Julia, using HDF5 encoding (.jld or .jld2) (returns Numpy array if it is the only object stored in file, otherwise returns HDF5 keys)
 
 Closing the sweep will find all data files from the above list produced by all completed runs of your script, and aggregate them within the dataframe. 
@@ -93,6 +93,8 @@ a503c32641b59f8b  4  0.5   60.0          0
 │   ├── 0e37e95b8301883e
 │   │   ├── log.txt
 │   │   ├── params.json
+│   │   ├── result1.pklz
+│   │   ├── result2.pklz
 │   │   └── status.txt
 │   ├── 6e733249c3ae5dd1
 │   │   ├── log.txt
@@ -101,14 +103,18 @@ a503c32641b59f8b  4  0.5   60.0          0
 │   ├── 7bfacd4db6a44d40
 │   │   ├── log.txt
 │   │   ├── params.json
+│   │   ├── result1.pklz
 │   │   └── status.txt
 │   ├── 9ac81a2c5029aa08
 │   │   ├── log.txt
 │   │   ├── params.json
+│   │   ├── result1.pklz
+│   │   ├── result2.pklz
 │   │   └── status.txt
 │   └── d73ece6dc1a2f5e8
 │       ├── log.txt
 │       ├── params.json
+│   │   ├── result1.pklz
 │       └── status.txt
 ├── data
 │   ├── eeab1386ca484886
