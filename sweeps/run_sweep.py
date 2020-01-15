@@ -108,6 +108,7 @@ def run_rf(args):
 
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, handle_signal)
+
     # Run the script
     process = subprocess.Popen([prog, script_path, rf_path],\
         stdout=log, stderr=subprocess.STDOUT)
