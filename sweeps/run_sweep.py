@@ -71,7 +71,7 @@ def run_sweep(project_dir, prog, script_file, num_procs, sweep_file=None, rerun_
     os.rename(run_file, path.join(project_dir,'history',run))
     if sweep_file is not None:
         os.rename(sweep_filepath, path.join(project_dir,'history',sweep_file))
-    shutil.copyfile(path.join(project_dir,'bin',script_file),\
+    shutil.copyfile(path.join(project_dir,script_file),\
         path.join(project_dir,'history',timestamp+'.script'))
 
     for rf in queued_rfs:
@@ -92,7 +92,7 @@ def run_sweep(project_dir, prog, script_file, num_procs, sweep_file=None, rerun_
 def run_rf(args):
     project_dir, prog, script_file, rf = args
     rf_path = path.join(project_dir, 'rfs', rf)
-    script_path = path.join(project_dir, 'bin', script_file)
+    script_path = path.join(project_dir, script_file)
     script_id = get_script_id(script_file, project_dir)
 
     # Open log and status files

@@ -25,7 +25,7 @@ def write(file, message):
     file.flush()
 
 def get_script_id(script_file, project_dir):
-    script_path = path.join(project_dir, "bin", script_file)
+    script_path = path.join(project_dir, script_file)
     with open(script_path) as file:
         contents = file.read()
         return script_file + "@" + hashlib.md5(contents.encode('utf-8')).hexdigest()

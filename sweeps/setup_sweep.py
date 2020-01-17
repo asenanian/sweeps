@@ -9,8 +9,6 @@ from .sweep_utils import get_timestamp
 def init_dir(project_dir):
     dirs_to_make = [path.join(project_dir,dir) for dir in ['rfs','history','data']]
     [os.mkdir(dir) for dir in dirs_to_make if not path.exists(dir) ]
-    if not path.exists(path.join(project_dir,'bin')):
-        raise IOError("Bin directory missing, please include, and place scripts in it.")
 
 def create_rfs(project_dir, sweep_file):
     """
