@@ -70,11 +70,11 @@ Here is a possible example of a dataframe produced by a script which, depending 
 >>> df
                   a    b      c    results
 e9b0f2081a509199  1  0.5    0.0          4
-e9b0f2858a7b70b1  1  0.5   20.0  (4, 20.0)
+e9b0f2858a7b70b1  1  0.5   20.0  (4, 20.0)      # run produced two data files
 a49e0b9b22f135a7  1  0.5   40.0          4
 6648175135df5aec  1  0.5   60.0          4
 f0a0ae3eaf59f41c  4  0.5    0.0          0
-42aced5e6c241677  4  0.5   20.0  (0, 20.0)
+42aced5e6c241677  4  0.5   20.0  (0, 20.0)      # run produced two data files
 c920026405b40f2d  4  0.5   40.0          0
 a503c32641b59f8b  4  0.5   60.0          0
 ```
