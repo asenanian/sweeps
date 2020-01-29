@@ -69,10 +69,13 @@ def close_rfs(project_dir, sweep_file):
     df.to_pickle(path.join(data_path,'result.pkl'))
     shutil.copyfile(sweep_filepath,path.join(data_path,sweep_file))
 
-def get_dataframe(project_dir):
+def get_dataframe(project_dir,rf=None):
     directory_list = os.listdir(os.path.join(project_dir,'data'))
-    for param_folder in directory_list:
-        yield pd.read_pickle(os.path.join(project_dir,'data',param_folder,'result.pkl'))
+    if rf == None:
+        for param_folder in directory_list:
+            yield pd.read_pickle(os.path.join(project_dir,'data',param_folder,'result.pkl'))
+    else: 
+        yield pd.read_pickle(os.path.join(project_dir,'data',rf,'result.pkl'))
 
 def get_data(ID:str, sim_loc: str):
     """
