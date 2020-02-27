@@ -69,6 +69,7 @@ def read_sweep(sweep_file):
     dtype_handlers['logspace'] = lambda value : numpy.logspace(*value).tolist() \
                                             if len(value) == 3 else None
     dtype_handlers['string'] = lambda value : [value]
+    dtype_handlers['tuple'] = lambda value : [value] if isinstance(value,list) else None
 
     parameter_keys = list(sweep.keys())
     parameter_values = [dtype_handlers[item['sweep_type']](item['value'])  \

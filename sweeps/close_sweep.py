@@ -15,6 +15,9 @@ def close_rfs(project_dir, sweep_file):
 
     if rf_status[Status.FAILED]:
         warnings.warn("Warning: Found rfs with status FAILED.")
+    
+    if rf_status[Status.RUNNING]:
+        warnings.warn("Sweeps still running. Rerun sweeps-close when finished. ")
 
     sweep_filepath = path.join(project_dir,sweep_file)
     finished_rfs = set(rf_status[Status.FINISHED])
@@ -27,6 +30,8 @@ def close_rfs(project_dir, sweep_file):
         if path.exists(rf_path):
             with open(os.path.join(rf_path,'params.json')) as param_file:
                 params.append(json.load(param_file))
+
+            # pull all data files from run folder (RF)
             tup = tuple([x for x in get_data(rf,project_dir)])
             if len(tup) == 1: 
                 results.append(tup[0])
@@ -34,6 +39,8 @@ def close_rfs(project_dir, sweep_file):
                 warnings.warn("Data file was not produced by finished run: " + str(rf))
             else: 
                 results.append(tup)
+            
+            # get script id
             with open(path.join(project_dir,'rfs',rf,'status.txt'), 'r') as file:
                 for line in file:
                     _, _, script_id = (s.strip() for s in line.split('|'))
